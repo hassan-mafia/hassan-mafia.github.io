@@ -119,3 +119,23 @@
     background-color: rgba(255, 255, 255, 0.8); /* Optional: semi-transparent background */
 }
 
+        /* Style for the footer card */
+        .footer-card {
+            position: fixed; /* Keeps the card at the bottom */
+            bottom: 0;
+            width: 100%; /* Full width */
+            background-color: #f1f1f1; /* Light background */
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow at the top */
+        }
+
+        .footer-card a {
+            color: #4CAF50; /* Green color for the link */
+            text-decoration: none; /* Remove underline */
+            font-weight: bold; /* Bold text */
+        }
+
+        .footer-card a:hover {
+            text-decoration: underline; /* Underline on hover */
+        }
