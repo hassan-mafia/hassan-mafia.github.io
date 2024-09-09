@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Join/Create</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module" src="script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Hassan Mafia</h1>
+        <form id="groupForm">
+            <div class="input-group">
+                <label for="groupName">Group Name:</label>
+                <input type="text" id="groupName" required>
+            </div>
+            <div class="input-group">
+                <label for="groupPassword">Password:</label>
+                <input type="password" id="groupPassword" required>
+            </div>
+            <div class="button-group">
+                <button type="button" id="joinGroup" class="button">Join Group</button>
+                <span>or</span>
+                <button type="button" id="createGroup" class="button">Create New Group</button>
+            </div>
+        </form>
+    </div>
+    <script type="module">
+        import { homeInit } from "script.js";
+        document.addEventListener('DOMContentLoaded', homeInit);
+    </script>
+
+</body>
+</html>

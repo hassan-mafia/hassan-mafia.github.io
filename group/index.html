@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group</title>
+    <link rel="stylesheet" href="../style.css"> <!-- Add styles as needed -->
+</head>
+<body>
+    <div id="mainContainer">
+
+        <h1 id="groupName">Group Name</h1>
+    
+        <!-- Button to Join as Referee -->
+        <button id="joinAsReferee" class="button">Join as Referee</button>
+    
+        <!-- Label "Or Join as" -->
+        <h3><br>Or Join as:</h3>
+    
+        <!-- Container for dynamically generated player buttons -->
+        <div id="playersContainer"></div>
+    </div>
+
+    <script type="module">
+        import { groupInit } from "../script.js";
+        document.addEventListener('DOMContentLoaded', groupInit);
+    </script>
+</body>
+</html>

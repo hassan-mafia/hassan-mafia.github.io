@@ -1,0 +1,103 @@
+/* Ensure container takes full width */
+#playersContainer {
+    width: 100%;
+}
+
+/* Player row container with flexbox */
+.player-row {
+    display: flex;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* Style for player name (60% width) */
+.name-button {
+    flex: 0 0 60%; /* 60% width */
+    padding: 10px;
+    margin: 0 5px; /* Spacing between buttons */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+/* Style for active/inactive and delete buttons (20% width each) */
+.small-button {
+    flex: 0 0 19%; /* 20% width */
+    padding: 10px;
+    margin: 0 5px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    background-color: #888888; /* Gray background for small buttons */
+}
+
+/* Hover effect for buttons */
+.name-button:hover,
+.small-button:hover {
+    opacity: 0.8;
+}
+
+
+.button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.button:hover {
+    background-color: #45a049;
+}
+
+
+/* Responsive styles */
+@media only screen and (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .button {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    .name-button {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    .small-button {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    #playersContainer button {
+        width: 90%; /* Adjust button width for smaller screens */
+    }
+}
+
+#playersContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+#mainContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
