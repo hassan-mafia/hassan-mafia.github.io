@@ -3,8 +3,9 @@ import { collection, query, where, doc, getDocs, getDoc, orderBy, addDoc } from 
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
 import { getStorage } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
 
-
-
+export let votes = {};
+export let groupDoc;
+export let groupRef;
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -18,23 +19,24 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+export const db = getFirestore(app);
 
 export function homeInit() {
+    setLoading(true);
     const groupNameField = document.getElementById('groupName');
-    const groupPasswordField = document.getElementById('groupPassword');
+    const groupKeyField = document.getElementById('groupKey');
     const joinGroupBtn = document.getElementById('joinGroup');
     const createGroupBtn = document.getElementById('createGroup');
-
     createGroupBtn.addEventListener('click', async () => {
+        setLoading(true);
         const groupName = groupNameField.value;
-        const groupPassword = groupPasswordField.value;
+        const groupKey = groupKeyField.value;
         const q = query(collection(db, "groups"), where("name", "==", groupName.toUpperCase()));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
-            querySnapshot.forEach((doc) => {
+            querySnapshot.forEach(async (doc) => {
                 const groupData = doc.data();
-                Swal.fire({
+                await Swal.fire({
                     title: 'Group "' + groupName + '" Already Exists, join instead?',
                     icon: 'warning',
                     showCancelButton: true,
@@ -42,12 +44,12 @@ export function homeInit() {
                     cancelButtonText: 'No, cancel'
                 }).then(async (result) => {
                     if (result.isConfirmed) {
-                        if (groupPassword == groupData.password) {
-                            window.location.href = `./group/?id=${doc.id}`;
+                        if (groupKey == groupData.password) {
+                            window.location.href = `./group/?group=${groupData.name}&key=${groupData.password}`;
                         }
                         else {
                             Swal.fire({
-                                title: 'Wrong Passsword!',
+                                title: 'Wrong Group Key!',
                                 icon: 'error',
                                 confirmButtonText: 'OK'
                             });
@@ -56,20 +58,22 @@ export function homeInit() {
                 });
             });
         } else {
-            await addGroup('Create New Group "' + groupName + '" With Password "' + groupPassword + '"?');
+            await addGroup('Create New Group "' + groupName + '" With Key "' + groupKey + '"?');
         }
+        setLoading(false);
     });
 
     joinGroupBtn.addEventListener('click', async () => {
+        setLoading(true);
         const groupName = groupNameField.value;
-        const groupPassword = groupPasswordField.value;
+        const groupKey = groupKeyField.value;
         const q = query(collection(db, "groups"), where("name", "==", groupName.toUpperCase()));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
             querySnapshot.forEach((doc) => {
                 const groupData = doc.data();
-                if (groupData.password == groupPassword) {
-                    window.location.href = `./group/?id=${doc.id}`;
+                if (groupData.password == groupKey) {
+                    window.location.href = `./group/?group=${groupData.name}&key=${groupData.password}`;
                 }
                 else {
                     Swal.fire({
@@ -81,25 +85,59 @@ export function homeInit() {
             });
 
         } else {
-            await addGroup('Group "' + groupName + '" Not Exist, Create New One With Password "' + groupPassword + '"?');
+            await addGroup('Group "' + groupName + '" Not Exist, Create New One With Key "' + groupKey + '"?');
+        }
+        setLoading(false);
+    });
+    setLoading(false);
+}
+
+
+export function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+}
+
+export async function fetchGroupData(name) {
+    if (name) {
+        const q = query(collection(db, "groups"), where("name", "==", name));
+        const querySnapshot = await getDocs(q);
+        groupDoc = querySnapshot.docs[0];
+        groupRef = doc(db, "groups", groupDoc.id);
+    } else {
+        await Swal.fire({
+            title: 'Invalid group name or key!',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        window.location.href = "../";
+    }
+}
+
+export function getVotesCount() {
+    const groupData = groupDoc.data();
+    const players = groupData.players;
+    players.forEach(player => {
+        if (player.active)
+        {
+            votes[player.name] = {
+                count: 0,
+                voters: []
+            };
+            players.forEach(voter => {
+                if (voter.active && (voter.vote === player.name)) {
+                    votes[player.name].count += 1;
+                    votes[player.name].voters.push(voter.name);
+                }
+            });
         }
     });
 }
 
-export function groupInit()
-{
-    const groupId = getQueryParam('id');
-    if (groupId) {
-        loadGroupData(groupId);
-    } else {
-        document.getElementById('groupName').textContent = "Group ID not found!";
-    }
-}
-
 async function addGroup(confirmationMessage) {
     const groupNameField = document.getElementById('groupName');
-    const groupPasswordField = document.getElementById('groupPassword');
-    Swal.fire({
+    const groupKeyField = document.getElementById('groupKey');
+    await Swal.fire({
         title: confirmationMessage,
         icon: 'warning',
         showCancelButton: true,
@@ -108,12 +146,15 @@ async function addGroup(confirmationMessage) {
     }).then(async (result) => {
         if (result.isConfirmed) {
             const groupName = groupNameField.value.toUpperCase();
-            const groupPassword = groupPasswordField.value;
+            const groupKey = groupKeyField.value;
+            const array = Array.from({ length: 20 }, (v, i) => (i + 1).toString());
             const groupData = {
                 name: groupName,
-                password: groupPassword
+                password: groupKey,
+                players: [],
+                randoms: array
             };
-            const docRef = await addDoc(collection(db, "groups"), groupData);
+            await addDoc(collection(db, "groups"), groupData);
             Swal.fire({
                 title: 'Group created successfully!',
                 icon: 'success',
@@ -124,49 +165,15 @@ async function addGroup(confirmationMessage) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
-}
-
-async function loadGroupData(groupId) {
-    try {
-        const docRef = doc(db, "groups", groupId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const groupData = docSnap.data();
-            document.getElementById('groupName').textContent = groupData.name.toUpperCase();
-            displayPlayers(groupData.players);
-        } else {
-            console.log("No such document!");
-        }
-    } catch (error) {
-        console.error("Error fetching group data:", error);
+export function setLoading(state) {
+    if (state == true) {
+        document.getElementById("loadingContainer").style.display = 'flex';
+        document.getElementById("mainContainer").style.display = 'none';
+    }
+    else if (state == false) {
+        document.getElementById("loadingContainer").style.display = 'none';
+        document.getElementById("mainContainer").style.display = 'flex';
     }
 }
 
-function displayPlayers(players) {
-    const playersContainer = document.getElementById('playersContainer');
 
-    if (players && players.length > 0) {
-        players.forEach(player => {
-            const button = document.createElement('button');
-            button.textContent = player.name;
-            button.classList.add('player-button');
-            playersContainer.appendChild(button);
-        });
-    } else {
-        playersContainer.textContent = "No players available.";
-    }
-}

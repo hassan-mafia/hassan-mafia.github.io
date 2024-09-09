@@ -4,36 +4,37 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hassan Mafia - Group</title>
+    <title>Hassan Mafia - Randoms</title>
     <link rel="icon" href="../images/logo.jpg">
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="style.css"> <!-- You can add a stylesheet here -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 <body>
-
     <div id="loadingContainer">
         <img src="../images/loading.gif">
     </div>
 
     <div id="mainContainer">
         <a href="../" style="display: flex; justify-content: center;"> <img src="../images/logo1.png" style="width: 60%;"> </a>
-        
         <button id="groupName" class="player-button name-button" style="font-size: 30px; width: 100%;background-color: rgb(12, 111, 88);">Show My Number</button>
-        <br>
-        <!-- Button to Join as Referee -->
-        <div style="width: 100%; display: flex; flex-direction: column; ">
-            <button id="joinAsReferee" class="button" style="font-size: 20px;">Join as Referee</button>
+
+        <h1 id="playerName">Randoms List</h1>
+
+        <button id="save" class="player-button small-button" style="background-color: rgb(12, 111, 88);">Save</button>
+
+        <!-- Container to dynamically create player buttons -->
+        <div id="randomsContainer"></div>
+        <div>
         </div>
     
-        <!-- Label "Or Join as" -->
-        <h2>Or Join as:</h2>
-    
-        <!-- Container for dynamically generated player buttons -->
-        <div id="playersContainer"></div>
     </div>
 
+    <!-- JavaScript -->
     <script type="module">
-        import { groupInit } from "./script.js";
-        document.addEventListener('DOMContentLoaded', groupInit);
+        import { randomsInit } from "./script.js";
+        document.addEventListener('DOMContentLoaded', randomsInit);
     </script>
+
 </body>
 </html>

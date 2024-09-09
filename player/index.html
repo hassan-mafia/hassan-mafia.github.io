@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hassan Mafia - Referee</title>
+    <title>Hassan Mafia - Player</title>
     <link rel="icon" href="../images/logo.jpg">
     <link rel="stylesheet" href="style.css"> <!-- You can add a stylesheet here -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -18,18 +18,15 @@
     <div id="mainContainer">
         <a href="../" style="display: flex; justify-content: center;"> <img src="../images/logo1.png" style="width: 60%;"> </a>
         <button id="groupName" class="player-button name-button" style="font-size: 30px; width: 100%;background-color: rgb(12, 111, 88);">Show My Number</button>
-
         <h1 id="playerName">Player Name</h1>
 
         <div class="player-row">
-            <button id="generateRandoms" class="player-button small-button" style="background-color: rgb(12, 111, 88);">Generate New Randoms</button>
-            <button id="editRandoms" class="player-button small-button" style="background-color: rgb(12, 111, 88);">Edit Randoms</button>
-            <button id="reloadVotes" class="player-button small-button" style="background-color: rgb(12, 111, 88);">Reload Votes</button>
-            <button id="resetVotes" class="player-button small-button" style="background-color: rgb(12, 111, 88);">Reset Votes</button>
-            <button id="addPlayer" class="player-button small-button" style="background-color: rgb(12, 111, 88);">Add Player</button>
+            <button id="showNumber" class="player-button small-button">Show My Number</button>
+            <button id="reloadVotes" class="player-button small-button">Reload Votes</button>
+            <button id="resetMyVote" class="player-button small-button">Reset My Vote</button>
         </div>
 
-        <h1>Players</h1>
+        <h1 id="playerVote">Change Your Vote</h1>
 
 
         <!-- Container to dynamically create player buttons -->
@@ -42,8 +39,8 @@
 
     <!-- JavaScript -->
     <script type="module">
-        import { refereeInit } from "./script.js";
-        document.addEventListener('DOMContentLoaded', refereeInit);
+        import { playerInit } from "./script.js";
+        document.addEventListener('DOMContentLoaded', playerInit);
     </script>
 
 </body>

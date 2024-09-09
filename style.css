@@ -75,49 +75,22 @@ span {
     font-size: 14px;
 }
 
-.confirmation-box {
-    margin-top: 20px;
-    background-color: #ffeb3b;
-    padding: 15px;
-    border-radius: 5px;
-}
-
-.confirmation-box p {
-    font-size: 16px;
-    color: #333;
-}
-
-/* Player buttons section */
-#playersContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 20px;
-}
-
 #mainContainer {
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: center;
     margin-top: 20px;
 }
-
-#playersContainer button {
-    display: block;
-    margin: 10px 0; /* Add spacing between buttons */
-    padding: 10px;
-    width: 100%; /* Ensure buttons take full width */
-    max-width: 300px; /* Cap the maximum width */
-    font-size: 14px;
-    border-radius: 5px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-#playersContainer button:hover {
-    background-color: #45a049;
+#loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    width: 100vw; /* Full viewport width */
+    position: absolute; /* Ensure it's placed on top */
+    top: 0;
+    left: 0;
+    background-color: rgba(255, 255, 255, 0.8); /* Optional: semi-transparent background */
 }
 
 /* Responsive styles */

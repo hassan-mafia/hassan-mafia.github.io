@@ -1,44 +1,57 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
 import { getFirestore, collection, query, where, getDocs, getDoc, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
+import { fetchGroupData, setLoading, getQueryParam, getVotesCount } from '../script.js';
+import { db, votes, groupDoc, groupRef } from '../script.js';
 
-let randoms = []
-let groupDoc;
-let groupRef;
+let groupName;
+let groupKey;
+let randoms = [];
 
-const firebaseConfig = {
-    apiKey: "AIzaSyC351lTMUnQYSq-gJBD9Ip3fESGI8qm2Rc",
-    authDomain: "hassan-mafia.firebaseapp.com",
-    projectId: "hassan-mafia",
-    storageBucket: "hassan-mafia.appspot.com",
-    messagingSenderId: "271809682518",
-    appId: "1:271809682518:web:d16cf3968637287fc1eff7",
-    measurementId: "G-Z5MDVKBH9M"
+export async function refereeInit() {
+    setLoading(true);
+    let error = false;
+    groupName = getQueryParam('group');
+    groupKey = getQueryParam('key');
+    document.getElementById("groupName").textContent = groupName.toUpperCase() + " GROUP - REFEREE";
+    document.getElementById("playerName").textContent = "Hello Referee!";
+    document.getElementById('groupName').addEventListener('click', () => {
+        window.location.href = "../group/?group=" + groupName + "&key=" + groupKey;
+    });
+    if (groupName && groupKey) {
+        await fetchGroupData(groupName);
+        const groupData = groupDoc.data();
+        if (groupKey == groupData.password) {
+            randoms = groupData.randoms;
+            await displayPlayers();
+            document.getElementById('resetVotes').addEventListener('click', resetVotes);
+            document.getElementById('reloadVotes').addEventListener('click', reloadVotes);
+            document.getElementById('generateRandoms').addEventListener('click', generateRandoms);
+            document.getElementById('editRandoms').addEventListener('click', editRandoms);
+            document.getElementById('addPlayer').addEventListener('click', addPlayer);
+        }
+        else {
+            error = true;
+        }
+    } else {
+        error = true;
+    }
+    if (error == true) {
+        await Swal.fire({
+            title: 'Invalid group name or key!',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        window.location.href = "../";
+    }
+    setLoading(false);
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
-async function init() {
-    const q = query(collection(db, "groups"), where("name", "==", getQueryParam('group')));
-    const querySnapshot = await getDocs(q);
-    groupDoc = querySnapshot.docs[0];
-    groupRef = doc(db, "groups", groupDoc.id);
-}
-
-function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
-}
-
-async function loadGroupData() {
-    await init();
+async function displayPlayers() {
     const groupData = groupDoc.data();
+    const players = groupData.players;
     randoms = groupData.randoms;
-    displayPlayers(groupDoc.id, groupData.players);
-}
-
-function displayPlayers(groupId, players) {
-    const playersContainer = document.getElementById('playersContainer');
-    playersContainer.innerHTML = '';
+    document.getElementById('playersContainer').innerHTML = '';
+    getVotesCount();
     players.forEach((player, index) => {
         const playerDiv = document.createElement('div');
         playerDiv.classList.add('player-row');
@@ -49,54 +62,90 @@ function displayPlayers(groupId, players) {
         playerButton.style.backgroundColor = player.active ? '#4CAF50' : '#888888'; // Green if active, gray if not
         randoms[index] = player.id;
         playerButton.addEventListener('click', () => {
-            alert(`Player ID: ${randoms[index]}`);
+            Swal.fire(randoms[index]);
+        });
+        // Votes button
+        const votesButton = document.createElement('button');
+        votesButton.textContent = player.active ? votes[player.name].count + ' Votes' : 'Inactive';
+        votesButton.classList.add('player-button', 'small-button');
+        votesButton.style.color = "black";
+        votesButton.style.border = "1px solid #000000";
+        votesButton.addEventListener('click', () => {
+            Swal.fire({
+                title: player.name + ' Votes',
+                text: votes[player.name].voters,
+                icon: 'info',
+                confirmButtonText: 'OK'
+            });
         });
         // Set Active/Inactive button
         const toggleButton = document.createElement('button');
         toggleButton.textContent = player.active ? 'Set Inactive' : 'Set Active';
         toggleButton.classList.add('player-button', 'small-button');
-        toggleButton.style.backgroundColor = '#888888'; // Gray background
+        toggleButton.style.color = "black";
+        toggleButton.style.border = "1px solid #000000";
         toggleButton.addEventListener('click', () => {
-            togglePlayerActive(groupId, index, !player.active);
+            togglePlayerActive(index, !player.active);
         });
         // Delete button
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Delete';
         deleteButton.classList.add('player-button', 'small-button');
-        deleteButton.style.backgroundColor = '#888888'; // Gray background
+        deleteButton.style.color = "black";
+        deleteButton.style.border = "1px solid red";
         deleteButton.addEventListener('click', () => {
             deletePlayer(index);
         });
         // Append buttons to the player row
         playerDiv.appendChild(playerButton);
+        playerDiv.appendChild(votesButton);
         playerDiv.appendChild(toggleButton);
         playerDiv.appendChild(deleteButton);
-        playersContainer.appendChild(playerDiv);
+        document.getElementById('playersContainer').appendChild(playerDiv);
     });
 }
 
 async function deletePlayer(playerIndex) {
+    setLoading(true);
     const players = groupDoc.data().players;
     players.splice(playerIndex, 1);
     await updateDoc(groupRef, { players });
-    loadGroupData();
+    await fetchGroupData(groupName);
+    await displayPlayers();
+    setLoading(false);
+    Swal.fire({
+        title: 'Player deleted!',
+        icon: 'success',
+        confirmButtonText: 'OK'
+    });
 }
 
-
-async function togglePlayerActive(groupId, playerIndex, isActive) {
+async function togglePlayerActive(playerIndex, isActive) {
+    setLoading(true);
     const players = groupDoc.data().players;
     players[playerIndex].active = isActive;
     sortPlayers(players);
     await updateDoc(groupRef, { players });
-    location.reload();
+    await fetchGroupData(groupName);
+    await displayPlayers();
+    setLoading(false);
+    Swal.fire({
+        title: 'Player active status set!',
+        icon: 'success',
+        confirmButtonText: 'OK'
+    });
 }
 
 async function resetVotes() {
+    setLoading(true);
     const players = groupDoc.data().players;
     players.forEach(player => {
         player.vote = "None";
     });
     await updateDoc(groupRef, { players });
+    await fetchGroupData(groupName);
+    await displayPlayers();
+    setLoading(false);
     Swal.fire({
         title: 'Votes have been reset!',
         icon: 'success',
@@ -104,7 +153,15 @@ async function resetVotes() {
     });
 }
 
+async function reloadVotes() {
+    setLoading(true);
+    await fetchGroupData(groupName);
+    await displayPlayers();
+    setLoading(false);
+}
+
 async function generateRandoms() {
+    setLoading(true);
     const groupData = groupDoc.data();
     const players = groupData.players;
     randoms = shuffleArray(groupData.randoms);
@@ -112,23 +169,89 @@ async function generateRandoms() {
         player.id = randoms[index];
     });
     await updateDoc(groupRef, { players });
-}
-
-document.getElementById('resetVotes').addEventListener('click', async () => {
-    resetVotes();
-});
-
-document.getElementById('generateRandoms').addEventListener('click', async () => {
-    const groupData = groupDoc.data();
-    randoms = shuffleArray(groupData.randoms);
-    generateRandoms();
+    await fetchGroupData(groupName);
+    await displayPlayers();
+    setLoading(false);
     Swal.fire({
         title: 'New randoms generated!',
         icon: 'success',
         confirmButtonText: 'OK'
     });
-});
+}
 
+function editRandoms() {
+    window.location.href = "../randoms/?group=" + groupName + "&key=" + groupKey;
+}
+
+async function addPlayer() {
+    const groupData = groupDoc.data();
+    const players = groupData.players;
+    if (players.length >= 20) {
+        Swal.fire({
+            title: 'Players cannot exceed 20 players, please delete players first!',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
+    else {
+
+        Swal.fire({
+            title: 'Enter player name',
+            input: 'text',
+            inputPlaceholder: 'Type player name here',
+            showCancelButton: true,
+            confirmButtonText: 'Add',
+            cancelButtonText: 'Cancel',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to enter player name!';
+                }
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                setLoading(true);
+                const playerName = result.value;
+                const groupData = groupDoc.data();
+                const players = groupData.players;
+                let playerExist = false;
+                players.forEach(player => {
+                    if (playerName.replace(/\s+/g, '').toUpperCase() == player.name.replace(/\s+/g, '').toUpperCase()) {
+                        playerExist = true;
+                        setLoading(false);
+                        Swal.fire({
+                            title: 'Player name already exists, please choose new name!',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+                if (!playerExist) {
+                    players.push({
+                        name: playerName,
+                        id: 0,
+                        active: true,
+                        vote: "None",
+                        avatar: "None"
+                    });
+                    randoms = shuffleArray(groupData.randoms);
+                    sortPlayers(players);
+                    players.forEach((player, index) => {
+                        player.id = randoms[index];
+                    });
+                    await updateDoc(groupRef, { players });
+                    await fetchGroupData(groupName);
+                    await displayPlayers();
+                    setLoading(false);
+                    Swal.fire({
+                        title: 'New player added!',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            }
+        });
+    }
+}
 
 function shuffleArray(array) {
     let filteredArray = array.filter(value => value !== '');
@@ -137,66 +260,6 @@ function shuffleArray(array) {
         [filteredArray[i], filteredArray[j]] = [filteredArray[j], filteredArray[i]]; // Swap elements
     }
     return filteredArray;
-}
-
-window.onload = function () {
-    const groupName = getQueryParam('group');
-    if (groupName) {
-        document.getElementById('groupName').textContent += groupName;
-        loadGroupData();
-    } else {
-        document.getElementById('groupName').textContent = "Group not found!";
-    }
-};
-
-document.getElementById('addPlayer').addEventListener('click', async () => {
-    const playerName = document.getElementById('newPlayerName').value.trim();
-    if (!playerName) {
-        Swal.fire({
-            title: 'Please enter a valid name!',
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
-        return;
-    }
-    addPlayer(playerName);
-});
-
-async function addPlayer(playerName) {
-    const groupData = groupDoc.data();
-    const players = groupData.players;
-    let playerExist = false;
-    players.forEach(player => {
-        if (playerName.replace(/\s+/g, '') == player.name.replace(/\s+/g, '')) {
-            playerExist = true;
-            Swal.fire({
-                title: 'Player name already exists, please choose new name!',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        }
-    });
-    if (!playerExist) {
-        players.push({
-            name: playerName,
-            id: 0,
-            active: true,
-            vote: "None",
-            avatar: "None"
-        });
-        randoms = shuffleArray(groupData.randoms);
-        sortPlayers(players);
-        players.forEach((player, index) => {
-            player.id = randoms[index];
-        });
-        await updateDoc(groupRef, { players });
-        await loadGroupData();
-        Swal.fire({
-            title: 'New player added!',
-            icon: 'success',
-            confirmButtonText: 'OK'
-        });
-    }
 }
 
 function sortPlayers(players) {
@@ -213,3 +276,4 @@ function sortPlayers(players) {
         return a.name.localeCompare(b.name);
     });
 }
+
